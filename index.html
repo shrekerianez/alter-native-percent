@@ -1,104 +1,111 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0b0b0f" />
-  <meta name="description" content="AlterNative — калькулятор процентов и комиссии." />
-  <title>Калькулятор процентов · AlterNative</title>
-  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
-  <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="stylesheet" href="./style.css" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="color-scheme" content="light dark">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Проценты">
+  <meta name="description" content="AlterNative — быстрый калькулятор процентов и комиссии для iPhone.">
+
+  <title>Проценты · AlterNative</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <div class="glow glow-a" aria-hidden="true"></div>
-  <div class="glow glow-b" aria-hidden="true"></div>
-
-  <header class="topbar">
-    <a class="brand" href="https://shrekerianez.github.io/alter-native/" aria-label="Вернуться на сайт AlterNative">
-      <span class="brand-mark">A</span>
-      <span>AlterNative</span>
-    </a>
-    <span class="product-name">Калькулятор процентов</span>
-  </header>
-
-  <main class="shell">
-    <section class="intro">
-      <span class="eyebrow">AlterNative · Utilities</span>
-      <h1>Проценты<br><span>без ручных формул.</span></h1>
-      <p>Посчитай сумму после вычета процента или восстанови исходную сумму, если известен результат после удержания.</p>
-    </section>
-
-    <section class="calculator" aria-labelledby="calculator-title">
-      <h2 id="calculator-title" class="sr-only">Калькулятор</h2>
-
-      <div class="segmented" role="tablist" aria-label="Режим расчёта">
-        <button class="segment active" data-mode="subtract" type="button">Вычесть %</button>
-        <button class="segment" data-mode="restore" type="button">Найти сумму до вычета</button>
-      </div>
-
-      <div class="field-grid">
-        <label class="field">
-          <span id="amount-label">Исходная сумма</span>
-          <div class="input-wrap">
-            <input id="amount" inputmode="decimal" autocomplete="off" placeholder="100 000" aria-describedby="amount-hint" />
-            <span class="suffix">₽</span>
-          </div>
-          <small id="amount-hint">Можно вводить пробелы, точки и запятые.</small>
-        </label>
-
-        <label class="field">
-          <span>Процент</span>
-          <div class="input-wrap">
-            <input id="percent" inputmode="decimal" autocomplete="off" value="15" placeholder="15" />
-            <span class="suffix">%</span>
-          </div>
-          <div class="quick-percent" aria-label="Быстрый выбор процента">
-            <button type="button" data-percent="5">5%</button>
-            <button type="button" data-percent="6">6%</button>
-            <button type="button" data-percent="15">15%</button>
-            <button type="button" data-percent="20">20%</button>
-          </div>
-        </label>
-      </div>
-
-      <div class="result-card" aria-live="polite">
-        <div>
-          <span id="result-label">После вычета</span>
-          <strong id="result">85 000 ₽</strong>
-        </div>
-        <button id="copy-result" class="copy-button" type="button" aria-label="Скопировать результат">Копировать</button>
-      </div>
-
-      <div class="details">
-        <div class="detail-row">
-          <span id="detail-a-label">Исходная сумма</span>
-          <strong id="detail-a">100 000 ₽</strong>
-        </div>
-        <div class="detail-row">
-          <span>Процент</span>
-          <strong id="detail-percent">15%</strong>
-        </div>
-        <div class="detail-row emphasis">
-          <span id="detail-b-label">Удержано</span>
-          <strong id="detail-b">15 000 ₽</strong>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="brand" aria-label="AlterNative">
+        <span class="brand-mark" aria-hidden="true">A</span>
+        <div class="brand-copy">
+          <span class="brand-name">AlterNative</span>
+          <span class="brand-subtitle">Калькулятор процентов</span>
         </div>
       </div>
 
-      <p id="error" class="error" role="alert"></p>
-    </section>
+      <button class="icon-button" id="resetButton" type="button" aria-label="Сбросить расчёт" title="Сбросить расчёт">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.7 7.8A8 8 0 1 1 4 13h2.1a5.9 5.9 0 1 0 1.7-4.2L10 11H4V5l.7 2.8Z"/></svg>
+      </button>
+    </header>
 
-    <section class="explanation">
-      <div class="explanation-label">Как считается</div>
-      <p id="formula-text">100 000 ₽ × (1 − 15%) = 85 000 ₽</p>
-    </section>
-  </main>
+    <main class="main-content">
+      <section class="calculator-card glass" aria-labelledby="calculatorTitle">
+        <h1 id="calculatorTitle" class="sr-only">Калькулятор процентов</h1>
 
-  <footer>
-    <a href="https://shrekerianez.github.io/alter-native/">← Все приложения AlterNative</a>
-    <span>Работает офлайн после первого открытия</span>
-  </footer>
+        <div class="segmented-control" role="tablist" aria-label="Режим расчёта">
+          <button class="segment is-active" type="button" role="tab" aria-selected="true" data-mode="subtract">Вычесть</button>
+          <button class="segment" type="button" role="tab" aria-selected="false" data-mode="add">Добавить</button>
+          <button class="segment" type="button" role="tab" aria-selected="false" data-mode="reverse">До вычета</button>
+        </div>
 
-  <script src="./app.js"></script>
+        <div class="fields">
+          <label class="field">
+            <span class="field-label" id="amountLabel">Сумма</span>
+            <span class="input-wrap">
+              <input id="amountInput" class="number-input" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="100 000" aria-describedby="amountHint">
+              <span class="input-suffix" aria-hidden="true">₽</span>
+            </span>
+            <span class="field-hint" id="amountHint">Введите сумму в рублях</span>
+          </label>
+
+          <label class="field">
+            <span class="field-label">Процент</span>
+            <span class="input-wrap">
+              <input id="percentInput" class="number-input" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="15" aria-describedby="percentHint">
+              <span class="input-suffix" aria-hidden="true">%</span>
+            </span>
+            <span class="field-hint" id="percentHint">Например, комиссия агента</span>
+          </label>
+        </div>
+
+        <div class="quick-percent" aria-label="Быстрый выбор процента">
+          <button type="button" data-percent="5">5%</button>
+          <button type="button" data-percent="6">6%</button>
+          <button type="button" data-percent="15">15%</button>
+          <button type="button" data-percent="20">20%</button>
+        </div>
+      </section>
+
+      <section class="result-card" aria-live="polite" aria-atomic="true">
+        <div class="result-topline">
+          <span class="result-label" id="resultLabel">После вычета</span>
+          <span class="result-badge" id="resultBadge">− 0 ₽</span>
+        </div>
+        <output class="result-value" id="resultValue">0 ₽</output>
+        <div class="result-caption" id="resultCaption">Укажите сумму и процент</div>
+
+        <div class="result-actions">
+          <button class="button button-primary" id="copyButton" type="button" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3Zm2 0h5a2 2 0 0 1 2 2v5h2V5h-9v2Zm5 2H5v10h10V9Z"/></svg>
+            Скопировать
+          </button>
+          <button class="button button-secondary" id="saveButton" type="button" disabled aria-label="Сохранить расчёт в историю" title="Сохранить в историю">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a2 2 0 0 1 2 2v16l-8-4-8 4V5a2 2 0 0 1 2-2Zm0 2v12.8l6-3 6 3V5H6Z"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <section class="history-section" id="historySection" hidden>
+        <div class="section-header">
+          <h2>Недавние</h2>
+          <button class="text-button" id="clearHistoryButton" type="button">Очистить</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+      </section>
+
+      <p class="privacy-note">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a5 5 0 0 1 5 5v2h1a2 2 0 0 1 2 2v9H4v-9a2 2 0 0 1 2-2h1V7a5 5 0 0 1 5-5Zm3 7V7a3 3 0 0 0-6 0v2h6Zm3 2H6v7h12v-7Z"/></svg>
+        Все расчёты остаются на этом устройстве
+      </p>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script src="./app.js" defer></script>
 </body>
 </html>
