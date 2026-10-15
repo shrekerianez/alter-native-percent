@@ -1,0 +1,23 @@
+{
+  "name": "AlterNative — Калькулятор процентов",
+  "short_name": "Проценты",
+  "description": "Быстрый калькулятор процентов, комиссии и обратного расчёта.",
+  "lang": "ru",
+  "dir": "ltr",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone"],
+  "background_color": "#f2f2f7",
+  "theme_color": "#f2f2f7",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
