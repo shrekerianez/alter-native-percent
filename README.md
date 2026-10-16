@@ -1,6 +1,14 @@
 # AlterNative — Калькулятор процентов
 
-PWA-калькулятор для быстрых расчётов процентов и комиссии. Интерфейс проектируется mobile-first, в первую очередь для iPhone 16 Pro Max и запуска с экрана «Домой».
+PWA-калькулятор процентов для **iOS 27 / Safari 27**, спроектированный по правилам AlterNative: iPhone-first, WebKit-first, HIG-first.
+
+## Целевая платформа
+
+- iOS 27 only;
+- основной сценарий — установленное Home Screen Web App;
+- приоритет — Safari/WebKit и нативные web controls;
+- без React, Flutter и сторонних UI-фреймворков;
+- Liquid Glass используется только для navigation/actions chrome, а не как фон всего контента.
 
 ## Режимы
 
@@ -10,42 +18,40 @@ PWA-калькулятор для быстрых расчётов процент
 
 ## Возможности
 
-- мгновенный расчёт без кнопки «Рассчитать»;
+- мгновенный расчёт;
 - быстрый выбор 5%, 6%, 15% и 20%;
+- нативный `<select>` для режима расчёта с Safari 27 enhancement;
 - копирование результата;
 - локальная история расчётов;
-- сохранение последнего состояния на устройстве;
-- светлая и тёмная темы;
+- сохранение последнего состояния;
+- light/dark appearance;
 - safe-area для Dynamic Island и Home Indicator;
-- адаптация к экранной клавиатуре iPhone;
-- `prefers-reduced-motion`;
-- Service Worker и offline app shell;
-- Web App Manifest и standalone-режим;
-- без внешних библиотек и внешней аналитики.
+- Visual Viewport для экранной клавиатуры;
+- `prefers-reduced-motion` и increased contrast;
+- Service Worker + offline app shell;
+- Web App Manifest + standalone;
+- `apple-touch-icon` и PNG manifest icon;
+- без внешней аналитики.
 
 ## Структура
 
-- `index.html` — интерфейс приложения;
-- `style.css` — iPhone-first UI;
-- `app.js` — расчёты, история, clipboard и управление состоянием;
+- `index.html` — semantic HTML и native web controls;
+- `style.css` — iOS 27 UI и Liquid Glass control layer;
+- `app.js` — расчёты, Clipboard, history, dialog sheet и viewport handling;
 - `manifest.webmanifest` — PWA metadata;
-- `sw.js` — offline-кэш;
-- `icon.svg` — иконка приложения.
+- `sw.js` — offline cache;
+- `icon.svg` — browser favicon;
+- `apple-touch-icon.png` — Home Screen icon;
+- `icon-512.png` — manifest icon.
 
 ## Формулы
 
-### Вычесть процент
+`Вычесть: результат = сумма × (1 − процент / 100)`
 
-`результат = сумма × (1 − процент / 100)`
+`Добавить: результат = сумма × (1 + процент / 100)`
 
-### Добавить процент
-
-`результат = сумма × (1 + процент / 100)`
-
-### Найти сумму до вычета
-
-`исходная сумма = полученная сумма / (1 − процент / 100)`
+`До вычета: исходная сумма = полученная сумма / (1 − процент / 100)`
 
 ## Развёртывание
 
-Репозиторий рассчитан на GitHub Pages из корня ветки `main`. Все пути относительные, поэтому приложение корректно работает по адресу проекта вида `/alter-native-percent/`.
+GitHub Pages из корня ветки `main`. Production URL: `https://shrekerianez.github.io/alter-native-percent/`.
