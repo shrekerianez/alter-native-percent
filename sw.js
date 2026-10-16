@@ -1,13 +1,13 @@
-const CACHE_NAME = 'alternative-percent-ios27-v3';
+const CACHE_NAME = 'alternative-percent-ios27-v4';
 
 const APP_SHELL = [
   './',
   './index.html',
-  './style.css?v=ios27-3',
-  './app.js?v=ios27-3',
-  './manifest.webmanifest?v=ios27-3',
-  './icon.svg?v=ios27-3',
-  './apple-touch-icon.png?v=ios27-3',
+  './style.css?v=ios27-4',
+  './app.js?v=ios27-4',
+  './manifest.webmanifest?v=ios27-4',
+  './icon.svg?v=ios27-4',
+  './apple-touch-icon.png?v=ios27-4',
   './icon-512.png'
 ];
 
