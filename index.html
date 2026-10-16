@@ -10,102 +10,116 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Проценты">
-  <meta name="description" content="AlterNative — быстрый калькулятор процентов и комиссии для iPhone.">
+  <meta name="description" content="AlterNative — калькулятор процентов для iPhone на WebKit.">
 
   <title>Проценты · AlterNative</title>
   <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <div class="app-shell">
-    <header class="app-header">
-      <div class="brand" aria-label="AlterNative">
-        <span class="brand-mark" aria-hidden="true">A</span>
-        <div class="brand-copy">
-          <span class="brand-name">AlterNative</span>
-          <span class="brand-subtitle">Калькулятор процентов</span>
-        </div>
+    <header class="navigation-bar glass-bar">
+      <div class="navigation-title">
+        <span class="eyebrow">AlterNative</span>
+        <h1>Проценты</h1>
       </div>
 
-      <button class="icon-button" id="resetButton" type="button" aria-label="Сбросить расчёт" title="Сбросить расчёт">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.7 7.8A8 8 0 1 1 4 13h2.1a5.9 5.9 0 1 0 1.7-4.2L10 11H4V5l.7 2.8Z"/></svg>
+      <button class="glass-control icon-button" id="resetButton" type="button" aria-label="Сбросить расчёт">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5.4 7.7A8.2 8.2 0 1 1 3.8 13h2.1a6.1 6.1 0 1 0 1.3-3.8L9.8 12H3.5V5.7l1.9 2Z"/>
+        </svg>
       </button>
     </header>
 
-    <main class="main-content">
-      <section class="calculator-card glass" aria-labelledby="calculatorTitle">
-        <h1 id="calculatorTitle" class="sr-only">Калькулятор процентов</h1>
-
-        <div class="segmented-control" role="tablist" aria-label="Режим расчёта">
-          <button class="segment is-active" type="button" role="tab" aria-selected="true" data-mode="subtract">Вычесть</button>
-          <button class="segment" type="button" role="tab" aria-selected="false" data-mode="add">Добавить</button>
-          <button class="segment" type="button" role="tab" aria-selected="false" data-mode="reverse">До вычета</button>
+    <main class="content">
+      <section class="form-group" aria-label="Параметры расчёта">
+        <div class="form-row mode-row">
+          <label for="modeSelect">Расчёт</label>
+          <select id="modeSelect" class="mode-select" aria-label="Режим расчёта">
+            <option value="subtract">Вычесть процент</option>
+            <option value="add">Добавить процент</option>
+            <option value="reverse">Найти сумму до вычета</option>
+          </select>
         </div>
 
-        <div class="fields">
-          <label class="field">
-            <span class="field-label" id="amountLabel">Сумма</span>
-            <span class="input-wrap">
-              <input id="amountInput" class="number-input" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="100 000" aria-describedby="amountHint">
-              <span class="input-suffix" aria-hidden="true">₽</span>
-            </span>
-            <span class="field-hint" id="amountHint">Введите сумму в рублях</span>
-          </label>
+        <label class="form-row input-row" for="amountInput">
+          <span class="row-copy">
+            <span class="row-title" id="amountLabel">Сумма</span>
+            <span class="row-detail" id="amountHint">Сумма до удержания процента</span>
+          </span>
+          <span class="value-editor">
+            <input id="amountInput" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="100 000" aria-describedby="amountHint">
+            <span class="value-suffix" aria-hidden="true">₽</span>
+          </span>
+        </label>
 
-          <label class="field">
-            <span class="field-label">Процент</span>
-            <span class="input-wrap">
-              <input id="percentInput" class="number-input" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="15" aria-describedby="percentHint">
-              <span class="input-suffix" aria-hidden="true">%</span>
-            </span>
-            <span class="field-hint" id="percentHint">Например, комиссия агента</span>
-          </label>
-        </div>
-
-        <div class="quick-percent" aria-label="Быстрый выбор процента">
-          <button type="button" data-percent="5">5%</button>
-          <button type="button" data-percent="6">6%</button>
-          <button type="button" data-percent="15">15%</button>
-          <button type="button" data-percent="20">20%</button>
-        </div>
+        <label class="form-row input-row" for="percentInput">
+          <span class="row-copy">
+            <span class="row-title">Процент</span>
+            <span class="row-detail" id="percentHint">Например, комиссия агента</span>
+          </span>
+          <span class="value-editor percent-editor">
+            <input id="percentInput" type="text" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="15" aria-describedby="percentHint">
+            <span class="value-suffix" aria-hidden="true">%</span>
+          </span>
+        </label>
       </section>
 
-      <section class="result-card" aria-live="polite" aria-atomic="true">
-        <div class="result-topline">
-          <span class="result-label" id="resultLabel">После вычета</span>
-          <span class="result-badge" id="resultBadge">− 0 ₽</span>
-        </div>
-        <output class="result-value" id="resultValue">0 ₽</output>
-        <div class="result-caption" id="resultCaption">Укажите сумму и процент</div>
+      <div class="quick-percent" role="group" aria-label="Быстрый выбор процента">
+        <button class="glass-control quick-button" type="button" data-percent="5">5%</button>
+        <button class="glass-control quick-button" type="button" data-percent="6">6%</button>
+        <button class="glass-control quick-button" type="button" data-percent="15">15%</button>
+        <button class="glass-control quick-button" type="button" data-percent="20">20%</button>
+      </div>
 
-        <div class="result-actions">
-          <button class="button button-primary" id="copyButton" type="button" disabled>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3Zm2 0h5a2 2 0 0 1 2 2v5h2V5h-9v2Zm5 2H5v10h10V9Z"/></svg>
-            Скопировать
-          </button>
-          <button class="button button-secondary" id="saveButton" type="button" disabled aria-label="Сохранить расчёт в историю" title="Сохранить в историю">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a2 2 0 0 1 2 2v16l-8-4-8 4V5a2 2 0 0 1 2-2Zm0 2v12.8l6-3 6 3V5H6Z"/></svg>
-          </button>
+      <section class="result-section" aria-live="polite" aria-atomic="true">
+        <div class="result-heading">
+          <span id="resultLabel">После вычета</span>
+          <span class="delta" id="resultBadge">− 0 ₽</span>
         </div>
-      </section>
-
-      <section class="history-section" id="historySection" hidden>
-        <div class="section-header">
-          <h2>Недавние</h2>
-          <button class="text-button" id="clearHistoryButton" type="button">Очистить</button>
-        </div>
-        <div class="history-list" id="historyList"></div>
+        <output id="resultValue" class="result-value">0 ₽</output>
+        <p id="resultCaption" class="result-caption">Укажите сумму и процент</p>
       </section>
 
       <p class="privacy-note">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a5 5 0 0 1 5 5v2h1a2 2 0 0 1 2 2v9H4v-9a2 2 0 0 1 2-2h1V7a5 5 0 0 1 5-5Zm3 7V7a3 3 0 0 0-6 0v2h6Zm3 2H6v7h12v-7Z"/></svg>
-        Все расчёты остаются на этом устройстве
+        Расчёты и история хранятся только на этом устройстве.
       </p>
     </main>
+
+    <nav class="floating-toolbar glass-bar" aria-label="Действия с расчётом">
+      <button class="toolbar-button toolbar-primary" id="copyButton" type="button" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7V5a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3Zm2 0h5a2 2 0 0 1 2 2v5h2V5h-9v2Zm5 2H5v10h10V9Z"/></svg>
+        <span>Копировать</span>
+      </button>
+
+      <button class="toolbar-button" id="saveButton" type="button" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12a2 2 0 0 1 2 2v16l-8-4-8 4V5a2 2 0 0 1 2-2Zm0 2v12.8l6-3 6 3V5H6Z"/></svg>
+        <span>Сохранить</span>
+      </button>
+
+      <button class="toolbar-button" id="historyButton" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 1 1-7.4 5H2l3.2-3.2L8.4 9H6.7A6 6 0 1 0 12 6v3l4 2.3-1 1.7-5-2.9V4h2Z"/></svg>
+        <span>История</span>
+      </button>
+    </nav>
   </div>
 
-  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <dialog class="history-sheet" id="historyDialog" aria-labelledby="historyTitle">
+    <div class="sheet-shell">
+      <div class="sheet-grabber" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <button class="sheet-action" id="clearHistoryButton" type="button">Очистить</button>
+        <h2 id="historyTitle">История</h2>
+        <button class="sheet-action" id="closeHistoryButton" type="button">Готово</button>
+      </header>
+      <div class="history-empty" id="historyEmpty">Сохранённых расчётов пока нет.</div>
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </dialog>
+
+  <div class="toast glass-bar" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
   <script src="./app.js" defer></script>
 </body>
 </html>
