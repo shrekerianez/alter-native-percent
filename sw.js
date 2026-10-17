@@ -1,34 +1,54 @@
-const CACHE_NAME = 'alternative-percent-ios27-v8';
+importScripts('./version.js');
+
+const CACHE_PREFIX = 'alternative-percent-managed-';
+const CACHE_NAME = `${CACHE_PREFIX}${self.APP_VERSION || '27.9'}`;
+const LEGACY_PREFIX = 'alternative-percent-';
 
 const APP_SHELL = [
   './',
   './index.html',
-  './style.css?v=ios27-8',
-  './app.js?v=ios27-8',
-  './manifest.webmanifest?v=ios27-8',
-  './icon.svg?v=ios27-8',
-  './apple-touch-icon.png?v=ios27-8',
+  './version.js',
+  './style.css',
+  './enhancements.css',
+  './app.js',
+  './manifest.webmanifest',
+  './icon.svg',
+  './apple-touch-icon.png',
   './icon-512.png'
 ];
 
+async function precache() {
+  const cache = await caches.open(CACHE_NAME);
+  const requests = APP_SHELL.map((path) => new Request(new URL(path, self.registration.scope), { cache: 'reload' }));
+  await cache.addAll(requests);
+}
+
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => cache.addAll(APP_SHELL))
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil((async () => {
+    const existing = await caches.keys();
+    const upgradingFromLegacy = !existing.some((key) => key.startsWith(CACHE_PREFIX));
+    await precache();
+
+    // One-time bridge from the old 27.8 updater. Future releases wait for
+    // the in-app “Обновить” button instead of replacing themselves silently.
+    if (upgradingFromLegacy) await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys()
-      .then((keys) => Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      ))
-      .then(() => self.clients.claim())
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(
+      keys
+        .filter((key) => key !== CACHE_NAME && (key.startsWith(CACHE_PREFIX) || key.startsWith(LEGACY_PREFIX)))
+        .map((key) => caches.delete(key))
+    );
+    await self.clients.claim();
+  })());
+});
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('fetch', (event) => {
@@ -39,34 +59,29 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request)
-        .then((response) => {
-          if (response.ok) {
-            const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put('./index.html', copy));
-          }
-          return response;
-        })
-        .catch(async () => {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(request);
+        if (response.ok) {
           const cache = await caches.open(CACHE_NAME);
-          return (await cache.match('./index.html')) || (await cache.match('./'));
-        })
-    );
+          cache.put('./index.html', response.clone());
+        }
+        return response;
+      } catch (_) {
+        const cache = await caches.open(CACHE_NAME);
+        return (await cache.match('./index.html')) || (await cache.match('./'));
+      }
+    })());
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached;
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(request);
+    if (cached) return cached;
 
-      return fetch(request).then((response) => {
-        if (response.ok && response.type === 'basic') {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      });
-    })
-  );
+    const response = await fetch(request);
+    if (response.ok && response.type === 'basic') cache.put(request, response.clone());
+    return response;
+  })());
 });
