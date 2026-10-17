@@ -13,24 +13,29 @@
   <meta name="description" content="AlterNative — калькулятор процентов для iPhone на WebKit.">
 
   <title>Проценты · AlterNative</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=ios27-7">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=ios27-7">
-  <link rel="icon" href="./icon.svg?v=ios27-7" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=ios27-7">
+  <link rel="manifest" href="./manifest.webmanifest?v=ios27-8">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=ios27-8">
+  <link rel="icon" href="./icon.svg?v=ios27-8" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css?v=ios27-8">
 
   <style>
-    /* iOS 27.7 keyboard, safe-area and touch-focus corrections. */
+    /* iOS 27.8 cold-launch viewport and safe-area corrections. */
+    .app-shell {
+      min-height: 100dvh;
+      padding-bottom: calc(min(var(--safe-bottom), 34px) + 104px);
+    }
+
     .floating-toolbar {
-      bottom: calc(var(--safe-bottom) + 8px);
+      bottom: calc(min(var(--safe-bottom), 34px) + 8px);
       transition: opacity 160ms ease, transform 160ms ease, bottom 160ms ease, visibility 160ms step-end;
     }
 
     .toast {
-      bottom: calc(var(--safe-bottom) + 84px);
+      bottom: calc(min(var(--safe-bottom), 34px) + 84px);
     }
 
     body.keyboard-open .floating-toolbar {
-      bottom: calc(var(--safe-bottom) + 8px);
+      bottom: calc(min(var(--safe-bottom), 34px) + 8px);
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
@@ -42,7 +47,7 @@
     }
 
     body.keyboard-open .app-shell {
-      padding-bottom: calc(var(--safe-bottom) + 22px);
+      padding-bottom: calc(min(var(--safe-bottom), 34px) + 22px);
     }
 
     body.keyboard-open .toast {
@@ -141,7 +146,7 @@
 
       <p class="privacy-note">
         Расчёты и история хранятся только на этом устройстве.<br>
-        <span aria-label="Версия приложения 27.7">AlterNative · версия 27.7</span>
+        <span aria-label="Версия приложения 27.8">AlterNative · версия 27.8</span>
       </p>
     </main>
 
@@ -254,6 +259,6 @@
       syncKeyboard();
     })();
   </script>
-  <script src="./app.js?v=ios27-7" defer></script>
+  <script src="./app.js?v=ios27-8" defer></script>
 </body>
 </html>
