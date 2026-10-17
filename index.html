@@ -188,12 +188,15 @@
 
       const activeNumericInput = () => inputs.has(document.activeElement);
 
-      function keyboardIsVisible() {
-        if (!activeNumericInput()) return false;
-        if (!viewport) return true;
-
+      function viewportShowsKeyboard() {
+        if (!viewport) return activeNumericInput();
         const reduction = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
         return reduction > 120 || viewport.height < window.innerHeight * 0.82;
+      }
+
+      function keyboardIsVisible() {
+        if (!viewport) return activeNumericInput();
+        return viewportShowsKeyboard();
       }
 
       function revealActiveInput() {
