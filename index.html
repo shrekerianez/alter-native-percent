@@ -13,10 +13,61 @@
   <meta name="description" content="AlterNative — калькулятор процентов для iPhone на WebKit.">
 
   <title>Проценты · AlterNative</title>
-  <link rel="manifest" href="./manifest.webmanifest?v=ios27-5">
-  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=ios27-5">
-  <link rel="icon" href="./icon.svg?v=ios27-5" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css?v=ios27-5">
+  <link rel="manifest" href="./manifest.webmanifest?v=ios27-6">
+  <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=ios27-6">
+  <link rel="icon" href="./icon.svg?v=ios27-6" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css?v=ios27-6">
+
+  <style>
+    /* iOS 27.6 keyboard and touch-focus corrections. */
+    .floating-toolbar {
+      transition: opacity 160ms ease, transform 160ms ease, bottom 160ms ease, visibility 160ms step-end;
+    }
+
+    body.keyboard-open .floating-toolbar {
+      bottom: calc(var(--safe-bottom) + 8px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateY(18px) scale(0.985);
+    }
+
+    body.keyboard-open .privacy-note {
+      visibility: hidden;
+    }
+
+    body.keyboard-open .app-shell {
+      padding-bottom: calc(var(--safe-bottom) + 22px);
+    }
+
+    body.keyboard-open .toast {
+      opacity: 0 !important;
+      visibility: hidden;
+    }
+
+    .input-row {
+      scroll-margin-top: calc(var(--safe-top) + 92px);
+      scroll-margin-bottom: 24px;
+    }
+
+    html:not([data-input-modality="keyboard"]) .history-sheet .sheet-action:focus-visible,
+    html:not([data-input-modality="keyboard"]) .history-sheet .history-item:focus-visible {
+      outline: none;
+      box-shadow: none;
+    }
+
+    html[data-input-modality="keyboard"] .history-sheet .sheet-action:focus-visible,
+    html[data-input-modality="keyboard"] .history-sheet .history-item:focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--accent) 62%, transparent);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .floating-toolbar {
+        transition: none;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="app-shell">
@@ -85,7 +136,7 @@
 
       <p class="privacy-note">
         Расчёты и история хранятся только на этом устройстве.<br>
-        <span aria-label="Версия приложения 27.5">AlterNative · версия 27.5</span>
+        <span aria-label="Версия приложения 27.6">AlterNative · версия 27.6</span>
       </p>
     </main>
 
@@ -121,6 +172,80 @@
   </dialog>
 
   <div class="toast glass-bar" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-  <script src="./app.js?v=ios27-5" defer></script>
+
+  <script>
+    (() => {
+      'use strict';
+
+      const root = document.documentElement;
+      const body = document.body;
+      const amount = document.getElementById('amountInput');
+      const percent = document.getElementById('percentInput');
+      const inputs = new Set([amount, percent]);
+      const viewport = window.visualViewport;
+      let keyboardOpen = false;
+      let scrollTimer = 0;
+
+      const activeNumericInput = () => inputs.has(document.activeElement);
+
+      function keyboardIsVisible() {
+        if (!activeNumericInput()) return false;
+        if (!viewport) return true;
+
+        const reduction = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+        return reduction > 120 || viewport.height < window.innerHeight * 0.82;
+      }
+
+      function revealActiveInput() {
+        if (!activeNumericInput()) return;
+        window.clearTimeout(scrollTimer);
+        scrollTimer = window.setTimeout(() => {
+          const row = document.activeElement.closest('.input-row');
+          if (!row) return;
+          const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+          row.scrollIntoView({ block: 'center', inline: 'nearest', behavior: reduced ? 'auto' : 'smooth' });
+        }, 90);
+      }
+
+      function syncKeyboard() {
+        const open = keyboardIsVisible();
+        if (open !== keyboardOpen) {
+          keyboardOpen = open;
+          body.classList.toggle('keyboard-open', open);
+          root.toggleAttribute('data-keyboard-open', open);
+        }
+        if (open) revealActiveInput();
+      }
+
+      document.addEventListener('focusin', (event) => {
+        if (!inputs.has(event.target)) return;
+        window.setTimeout(syncKeyboard, 50);
+        window.setTimeout(syncKeyboard, 180);
+      });
+
+      document.addEventListener('focusout', (event) => {
+        if (!inputs.has(event.target)) return;
+        window.setTimeout(syncKeyboard, 180);
+        window.setTimeout(syncKeyboard, 360);
+      });
+
+      if (viewport) {
+        viewport.addEventListener('resize', syncKeyboard, { passive: true });
+        viewport.addEventListener('scroll', syncKeyboard, { passive: true });
+      }
+      window.addEventListener('resize', syncKeyboard, { passive: true });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Tab') root.setAttribute('data-input-modality', 'keyboard');
+      }, true);
+
+      const usePointerModality = () => root.setAttribute('data-input-modality', 'pointer');
+      document.addEventListener('pointerdown', usePointerModality, true);
+      document.addEventListener('touchstart', usePointerModality, { capture: true, passive: true });
+
+      syncKeyboard();
+    })();
+  </script>
+  <script src="./app.js?v=ios27-6" defer></script>
 </body>
 </html>
