@@ -22,7 +22,7 @@
 </head>
 <body>
   <!-- Скрытый нативный переключатель Safari для генерации Taptic Engine отклика -->
-  <div class="haptic- feedback- trigger" aria-hidden="true">
+  <div class="haptic-feedback-trigger" aria-hidden="true">
     <input type="checkbox" id="webkit-haptic-switch" switch tabindex="-1">
     <label for="webkit-haptic-switch" id="webkit-haptic-label"></label>
   </div>
@@ -73,7 +73,7 @@
         <span class="mode-icon">↺</span>
         <span class="mode-name">До вычета</span>
       </button>
-      <button type="button" role="tab" aria-selected="false" data-mode=" compare" class="mode-tab">
+      <button type="button" role="tab" aria-selected="false" data-mode="compare" class="mode-tab">
         <span class="mode-icon">Δ%</span>
         <span class="mode-name">Доля</span>
       </button>
@@ -86,13 +86,13 @@
         <!-- Секция вводимых параметров -->
         <div class="inputs-grid">
           <!-- Поле 1: Основная сумма -->
-          <div class="input-field-box active" id=" field-amount" data-field="amount" role="button" tabindex="0" aria-label="Поле ввода суммы">
+          <div class="input-field-box active" id="field-amount" data-field="amount" role="button" tabindex="0" aria-label="Поле ввода суммы">
             <div class="field-header">
               <span class="field-label" id="label-amount">Исходная сумма</span>
               <span class="field-hint">Свайп ← стереть</span>
             </div>
             <div class="field-value-wrap">
-              <span class=" field-value" id="display-amount">100 000</span>
+              <span class="field-value" id="display-amount">100 000</span>
               <span class="field-unit" id="unit-amount">₽</span>
             </div>
           </div>
@@ -132,7 +132,7 @@
             </button>
           </div>
 
-          <div class="result-main- readout" id="result-readout-container">
+          <div class="result-main-readout" id="result-readout-container">
             <output id="display-result" class="result-number">85 000 ₽</output>
           </div>
 
@@ -168,7 +168,7 @@
       </div>
     </section>
 
-    <!-- Тактильная клавиатура AlterNative Numpad (адаптирована под управление одной рукой) -->
+    <!-- Тактильная клавиатура AlterNative Numpad -->
     <section class="numpad-section" aria-label="Цифровая клавиатура">
       <div class="numpad-grid">
         <button type="button" class="num-key util-key" data-key="clear">AC</button>
@@ -176,7 +176,7 @@
           <span>Поле ⇄</span>
         </button>
         <button type="button" class="num-key util-key" data-key="000">000</button>
-        <button type="button" class="num-key.backspace-key util-key" data-key="backspace" aria-label="Удалить символ">
+        <button type="button" class="num-key backspace-key util-key" data-key="backspace" aria-label="Удалить символ">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
         </button>
 
@@ -204,7 +204,7 @@
   </main>
 
   <!-- Модальная шторка «Журнал сохранённых расчётов» -->
-  <aside id="history-sheet" class="sheet- backdrop" hidden aria-modal="true" role="dialog" aria-labelledby="sheet-title">
+  <aside id="history-sheet" class="sheet-backdrop" hidden aria-modal="true" role="dialog" aria-labelledby="sheet-title">
     <div class="glass-sheet">
       <div class="sheet-handle-bar" id="sheet-drag-handle">
         <span class="sheet-grabber"></span>
@@ -221,9 +221,7 @@
         </div>
       </header>
 
-      <div id="history-list" class="history-list">
-        <!-- Записи рендерятся динамически -->
-      </div>
+      <div id="history-list" class="history-list"></div>
     </div>
   </aside>
 

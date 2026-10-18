@@ -11,7 +11,7 @@
   --glass-surface: rgba(255, 255, 255, 0.72);
   --glass-surface-elevated: rgba(255, 255, 255, 0.88);
   --glass-border: rgba(255, 255, 255, 0.75);
-  --glass- inner- specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.9), inset 0 0 0 0.5px rgba(0, 0, 0, 0.06);
+  --glass-inner-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.9), inset 0 0 0 0.5px rgba(0, 0, 0, 0.06);
   --glass-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.03);
 
   --text-primary: #1C1C1E;
@@ -815,7 +815,7 @@ html, body {
   color: var(--text-tertiary);
 }
 
-.history-Result-line {
+.history-result-line {
   font-family: var(--font-rounded);
   font-size: 18px;
   font-weight: 700;

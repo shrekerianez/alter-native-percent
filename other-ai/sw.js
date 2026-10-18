@@ -3,8 +3,8 @@
  * Автономная работа (Offline-First) и безопасное обновление без потери данных пользователя
  */
 
-const CACHE_NAME = 'alternative-percent-cache-v1.0.0';
-constSTATIC_ASSETS = [
+const CACHE_NAME = 'alternative-percent-cache-v1.0.1';
+const STATIC_ASSETS = [
   './',
   './index.html',
   './styles.css',
@@ -14,6 +14,7 @@ constSTATIC_ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
   );
@@ -40,7 +41,6 @@ self.addEventListener('message', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
-  // Стратегия Stale-While-Revalidate для мгновенного старта из кэша и фонового обновления
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const networkFetch = fetch(event.request)

@@ -21,7 +21,7 @@
     amountRaw: '100000',
     percentRaw: '15',
     currencyIndex: 0,
-     overwriteOnNextInput: true,
+    overwriteOnNextInput: true,
     lastCalculation: null
   };
 
@@ -82,7 +82,7 @@
   /* ========================================================================
      2. Точная финансовая математика и форматирование
      ======================================================================== */
-  function round Money(num) {
+  function roundMoney(num) {
     if (!Number.isFinite(num)) return 0;
     return Math.round((num + Number.EPSILON) * 100) / 100;
   }
@@ -142,7 +142,7 @@
         deltaValue = roundMoney(amount * (percent / 100));
         resultValue = roundMoney(amount - deltaValue);
         formulaText = `${formatNumber(amount)} − ${formatNumber(percent)}%`;
-        summaryText = `${formatNumber(amount)} ${cur} − ${formatNumber(percent)}% = ${formatNumber(resultValue)} ${cur} (скидка/вычет: ${formatNumber(deltaValue)} ${cur})`;
+        summaryText = `${formatNumber(amount)} ${cur} − ${formatNumber(percent)}% = ${formatNumber(resultValue)} ${cur} (вычет: ${formatNumber(deltaValue)} ${cur})`;
         break;
       }
 
@@ -151,7 +151,7 @@
         deltaValue = roundMoney(amount * (percent / 100));
         resultValue = roundMoney(amount + deltaValue);
         formulaText = `${formatNumber(amount)} + ${formatNumber(percent)}%`;
-        summaryText = `${formatNumber(amount)} ${cur} + ${formatNumber(percent)}% = ${formatNumber(resultValue)} ${cur} (наценка/доход: +${formatNumber(deltaValue)} ${cur})`;
+        summaryText = `${formatNumber(amount)} ${cur} + ${formatNumber(percent)}% = ${formatNumber(resultValue)} ${cur} (наценка: +${formatNumber(deltaValue)} ${cur})`;
         break;
       }
 
@@ -228,7 +228,7 @@
     // Подписи полей в зависимости от выбранного режима
     const modeConfig = {
       subtract: {
-         idx: 0,
+        idx: 0,
         labelA: 'Исходная сумма',
         labelB: 'Процент вычета',
         labelRes: 'Остаток после вычета',
@@ -336,7 +336,7 @@
 
     if (key === 'step-up' || key === 'step-down') {
       const delta = key === 'step-up' ? 1 : -1;
-       const currentP = parseRaw(state.percentRaw);
+      const currentP = parseRaw(state.percentRaw);
       const nextP = Math.max(0, roundMoney(currentP + delta));
       state.percentRaw = String(nextP);
       compute();
@@ -344,7 +344,7 @@
     }
 
     if (key === 'backspace') {
-      let current = getActiveRaw();
+      const current = getActiveRaw();
       if (current.length <= 1) {
         setActiveRaw('0');
         state.overwriteOnNextInput = true;
@@ -372,7 +372,7 @@
       return;
     }
 
-    // Ограничение длины ввода (до 12 символов до точки и 2 после)
+    // Ограничение длины ввода (до 11 символов до точки и 2 после)
     const parts = current.split('.');
     if (parts.length === 2 && normalizedKey !== '.' && parts[1].length >= 2) {
       return;
@@ -387,7 +387,6 @@
       current += normalizedKey;
     }
 
-    // Защита от пустых нулей вроде "000" в начале
     if (/^0{2,}/.test(current)) {
       current = '0';
     }
@@ -419,7 +418,7 @@
       await navigator.clipboard.writeText(calc.summaryText);
       showToast('Скопировано в буфер обмена');
     } catch (_) {
-      showToast(`${ formatNumber(calc.resultValue)} ${calc.currency}`);
+      showToast(`${formatNumber(calc.resultValue)} ${calc.currency}`);
     }
   }
 
@@ -436,10 +435,9 @@
         });
         return;
       } catch (err) {
-        if (err.name === 'AbortError') return;
+        if (err && err.name === 'AbortError') return;
       }
     }
-    // Если Web Share API недоступен (например, на десктопе), копируем
     copyCurrentCalculation();
   }
 
@@ -581,7 +579,7 @@
 
       const unit = item.mode === 'compare' ? '%' : item.currency;
 
-      const main matchingDiv = document.createElement('div');
+      const mainMatchingDiv = document.createElement('div');
       mainMatchingDiv.className = 'history-card-main';
       mainMatchingDiv.innerHTML = `
         <div class="history-badge-row">
@@ -706,6 +704,7 @@
 
     // Выбор активного поля ввода + Свайп для удаления последнего символа
     [dom.fieldAmount, dom.fieldPercent].forEach((fieldEl) => {
+      if (!fieldEl) return;
       let touchStartX = 0;
 
       fieldEl.addEventListener('click', () => {
