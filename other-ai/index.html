@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   
   <!-- Настройки iOS 27 WebKit Standalone -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,12 +21,6 @@
   <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <!-- Скрытый нативный переключатель Safari для генерации Taptic Engine отклика -->
-  <div class="haptic-feedback-trigger" aria-hidden="true">
-    <input type="checkbox" id="webkit-haptic-switch" switch tabindex="-1">
-    <label for="webkit-haptic-switch" id="webkit-haptic-label"></label>
-  </div>
-
   <!-- Баннер доступного обновления приложения -->
   <div id="update-banner" class="update-banner" hidden role="status" aria-live="polite">
     <span>Доступна новая версия приложения</span>
@@ -80,7 +74,7 @@
     </nav>
 
     <!-- Рабочая область: Карточка живого расчёта -->
-    <section class="workspace" aria-live="polite">
+    <section class="workspace">
       <div class="glass-card calculation-card">
         
         <!-- Секция вводимых параметров -->
@@ -133,7 +127,7 @@
           </div>
 
           <div class="result-main-readout" id="result-readout-container">
-            <output id="display-result" class="result-number">85 000 ₽</output>
+            <output id="display-result" class="result-number" aria-live="polite">85 000 ₽</output>
           </div>
 
           <!-- Анатомия расчёта (формула и дельта) -->

@@ -918,3 +918,106 @@ html, body {
   font-weight: 700;
   cursor: pointer;
 }
+
+
+/* Встроенные в клавиши нативные WebKit switch. Касание реально попадает
+   на контрол Safari; искусственные .click() не используются для Taptic. */
+[hidden] { display: none !important; }
+
+.native-haptic-hitbox {
+  display: flex;
+  position: relative;
+  min-width: 0;
+  align-items: stretch;
+}
+.native-haptic-hitbox > button {
+  width: 100%;
+  min-width: 0;
+}
+.native-haptic-hitbox.wide-key {
+  grid-column: span 2;
+}
+.native-haptic-hitbox > .zero-key {
+  grid-column: auto;
+}
+.native-haptic-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.native-haptic-overlay:disabled {
+  pointer-events: none;
+}
+.native-haptic-hitbox:focus-within {
+  outline: 3px solid var(--accent-color);
+  outline-offset: 2px;
+  border-radius: var(--radius-control);
+}
+.native-haptic-hitbox.haptic-pressed > button {
+  transform: scale(0.955);
+  background: var(--key-bg-active);
+}
+.mode-selector > .native-haptic-hitbox > .mode-tab {
+  min-height: 44px;
+}
+.top-actions > .native-haptic-hitbox > .glass-pill-btn {
+  min-height: 44px;
+}
+.action-btn:disabled,
+.chain-btn:disabled,
+.num-key:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.glass-sheet .icon-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 7px;
+  font-size: 12px;
+}
+.glass-sheet .close-circle-btn {
+  width: 44px;
+  height: 44px;
+}
+.result-number,
+.history-result-line,
+.history-meta-line {
+  user-select: text;
+  -webkit-user-select: text;
+}
+/* При малой высоте, крупном тексте и масштабировании элементы
+   прокручиваются вместо обрезки под кнопками. */
+html, body {
+  height: auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+body {
+  min-height: 100dvh;
+}
+.app-shell {
+  height: auto;
+  min-height: 100dvh;
+}
+.workspace {
+  flex: 1 0 auto;
+  min-height: 250px;
+}
+.glass-card {
+  min-height: 250px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

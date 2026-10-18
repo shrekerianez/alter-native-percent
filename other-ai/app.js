@@ -27,7 +27,6 @@
 
   // Кэш DOM-элементов
   const dom = {
-    hapticLabel: document.getElementById('webkit-haptic-label'),
     currencyBtn: document.getElementById('btn-currency'),
     currencySymbol: document.getElementById('currency-symbol'),
     modeTabs: document.querySelectorAll('.mode-tab'),
@@ -67,24 +66,75 @@
   /* ========================================================================
      1. WebKit Нативная тактильная отдача (iOS Taptic Engine)
      ======================================================================== */
+  // На iOS 26.5+ программный .click() больше не создаёт отклик.
+  // На iPhone ниже добавляются реальные касаемые switch-контролы поверх кнопок.
+  // На других устройствах используем стандартный Vibration API, если он доступен.
   function triggerHaptic() {
     try {
-      if (dom.hapticLabel) {
-        dom.hapticLabel.click();
-      } else if (navigator.vibrate) {
-        navigator.vibrate(8);
-      }
-    } catch (_) {
-      // Игнорируем на платформах без поддержки
-    }
+      if (typeof navigator.vibrate === 'function') navigator.vibrate(8);
+    } catch (_) {}
+  }
+
+  function enableNativeTouchFeedback() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    if (!isIOS) return;
+
+    // Оверлеи ставим только на неподвижные элементы.
+    // На горизонтальных пресетах и прокручиваемом журнале switch мешал бы свайпам.
+    const targets = document.querySelectorAll(
+      '.num-key, .mode-tab, .glass-pill-btn, .chain-btn, .card-actions .action-btn'
+    );
+
+    targets.forEach((button) => {
+      if (button.disabled || !button.parentNode) return;
+
+      const hitbox = document.createElement('span');
+      hitbox.className = 'native-haptic-hitbox';
+      if (button.classList.contains('zero-key')) hitbox.classList.add('wide-key');
+      button.parentNode.insertBefore(hitbox, button);
+      hitbox.appendChild(button);
+
+      const switchInput = document.createElement('input');
+      switchInput.type = 'checkbox';
+      switchInput.setAttribute('switch', '');
+      switchInput.className = 'native-haptic-overlay';
+      switchInput.setAttribute('aria-label',
+        button.getAttribute('aria-label') || button.textContent.trim().replace(/\s+/g, ' ')
+      );
+      // Реальный touch попадает на native switch. Его change активирует исходную кнопку.
+      switchInput.addEventListener('change', () => {
+        hitbox.classList.add('haptic-pressed');
+        button.click();
+        window.setTimeout(() => hitbox.classList.remove('haptic-pressed'), 105);
+      });
+      hitbox.appendChild(switchInput);
+      button.tabIndex = -1;
+    });
   }
 
   /* ========================================================================
      2. Точная финансовая математика и форматирование
      ======================================================================== */
+  // Вводимых знаков после запятой не более двух.
+  // Денежная арифметика в целых копейках (BigInt), округление половин вверх.
+  const toMinorUnits = (raw) => {
+    const value = String(raw || '0').replace(',', '.');
+    if (!/^\d{1,11}(?:\.\d{0,2})?$/.test(value)) return null;
+    const [whole, fraction = ''] = value.split('.');
+    return BigInt(whole) * 100n + BigInt((fraction + '00').slice(0, 2));
+  };
+
+  function divideRounded(numerator, denominator) {
+    if (denominator <= 0n) throw new RangeError('Деление на ноль');
+    return numerator >= 0n
+      ? (numerator + denominator / 2n) / denominator
+      : -((-numerator + denominator / 2n) / denominator);
+  }
+
   function roundMoney(num) {
     if (!Number.isFinite(num)) return 0;
-    return Math.round((num + Number.EPSILON) * 100) / 100;
+    return Number(num.toFixed(2));
   }
 
   function parseRaw(rawStr) {
@@ -127,6 +177,8 @@
   function compute() {
     const amount = parseRaw(state.amountRaw);
     const percent = parseRaw(state.percentRaw);
+    const amountCents = toMinorUnits(state.amountRaw);
+    const percentHundredths = toMinorUnits(state.percentRaw);
     const cur = getCurrency();
 
     let resultValue = 0;
@@ -135,70 +187,74 @@
     let errorMessage = '';
     let formulaText = '';
     let summaryText = '';
+    let resultCents = 0n;
+    let deltaCents = 0n;
 
-    switch (state.mode) {
-      case 'subtract': {
-        // Сценарий 1: Вычитание процента
-        deltaValue = roundMoney(amount * (percent / 100));
-        resultValue = roundMoney(amount - deltaValue);
-        formulaText = `${formatNumber(amount)} − ${formatNumber(percent)}%`;
-        summaryText = `${formatNumber(amount)} ${cur} − ${formatNumber(percent)}% = ${formatNumber(resultValue)} ${cur} (вычет: ${formatNumber(deltaValue)} ${cur})`;
-        break;
-      }
-
-      case 'add': {
-        // Сценарий 2: Добавление процента
-        deltaValue = roundMoney(amount * (percent / 100));
-        resultValue = roundMoney(amount + deltaValue);
-        formulaText = `${formatNumber(amount)} + ${formatNumber(percent)}%`;
-        summaryText = `${formatNumber(amount)} ${cur} + ${formatNumber(percent)}% = ${formatNumber(resultValue)} ${cur} (наценка: +${formatNumber(deltaValue)} ${cur})`;
-        break;
-      }
-
-      case 'reverse': {
-        // Сценарий 3: Обратный расчёт (Поиск суммы ДО удержания процента)
-        // Формула: Первоначальная = Остаток / (1 - Процент / 100)
-        if (percent >= 100) {
-          isError = true;
-          errorMessage = 'Удержание ≥ 100% невозможно';
-          formulaText = 'Деление на ноль или отрицательную долю';
-        } else {
-          const factor = (100 - percent) / 100;
-          resultValue = roundMoney(amount / factor);
-          deltaValue = roundMoney(resultValue - amount);
+    if (amountCents === null || percentHundredths === null) {
+      isError = true;
+      errorMessage = 'Некорректное число';
+      formulaText = 'Проверьте введённые значения';
+    } else if (state.mode === 'reverse' && percentHundredths >= 10000n) {
+      isError = true;
+      errorMessage = 'Удержание ≥ 100% невозможно';
+      formulaText = 'Процент должен быть меньше 100';
+    } else if (state.mode === 'compare' && percentHundredths === 0n) {
+      isError = true;
+      errorMessage = 'База сравнения равна 0';
+      formulaText = 'Введите вторую сумму больше 0';
+    } else {
+      switch (state.mode) {
+        case 'subtract':
+          deltaCents = divideRounded(amountCents * percentHundredths, 10000n);
+          resultCents = amountCents - deltaCents;
+          formulaText = `${formatNumber(amount)} − ${formatNumber(percent)}%`;
+          break;
+        case 'add':
+          deltaCents = divideRounded(amountCents * percentHundredths, 10000n);
+          resultCents = amountCents + deltaCents;
+          formulaText = `${formatNumber(amount)} + ${formatNumber(percent)}%`;
+          break;
+        case 'reverse':
+          resultCents = divideRounded(amountCents * 10000n, 10000n - percentHundredths);
+          deltaCents = resultCents - amountCents;
           formulaText = `${formatNumber(amount)} ÷ (1 − ${formatNumber(percent / 100)})`;
-          summaryText = `После вычета ${formatNumber(percent)}% осталось ${formatNumber(amount)} ${cur} → Исходная сумма: ${formatNumber(resultValue)} ${cur} (удержано: ${formatNumber(deltaValue)} ${cur})`;
-        }
-        break;
+          break;
+        case 'compare':
+          // resultCents хранит сотые доли процента.
+          resultCents = divideRounded(amountCents * 10000n, percentHundredths);
+          deltaCents = amountCents - percentHundredths;
+          formulaText = `(${formatNumber(amount)} ÷ ${formatNumber(percent)}) × 100%`;
+          break;
+        default:
+          isError = true;
+          errorMessage = 'Неизвестный режим';
       }
 
-      case 'compare': {
-        // Сценарий 4 (Доп.): Какой % составляет Число А от Числа Б + разница
-        if (percent === 0) {
-          isError = true;
-          errorMessage = 'База сравнения равна 0';
-          formulaText = 'Введите вторую сумму больше 0';
-        } else {
-          resultValue = roundMoney((amount / percent) * 100);
-          deltaValue = roundMoney(amount - percent);
-          formulaText = `(${formatNumber(amount)} ÷ ${formatNumber(percent)}) × 100%`;
-          summaryText = `${formatNumber(amount)} ${cur} от ${formatNumber(percent)} ${cur} составляет ${formatNumber(resultValue)}% (разница: ${deltaValue >= 0 ? '+' : ''}${formatNumber(deltaValue)} ${cur})`;
-        }
-        break;
+      if (!isError && (!Number.isSafeInteger(Number(resultCents)) ||
+          !Number.isSafeInteger(Number(deltaCents)))) {
+        isError = true;
+        errorMessage = 'Слишком большая сумма';
+        formulaText = 'Уменьшите вводимые значения';
+      }
+    }
+
+    if (!isError) {
+      resultValue = Number(resultCents) / 100;
+      deltaValue = Number(deltaCents) / 100;
+      if (state.mode === 'subtract') {
+        summaryText = `${formatNumber(amount)} ${cur} − ${formatNumber(percent)}% = ${formatNumber(resultValue)} ${cur} (вычет: ${formatNumber(deltaValue)} ${cur})`;
+      } else if (state.mode === 'add') {
+        summaryText = `${formatNumber(amount)} ${cur} + ${formatNumber(percent)}% = ${formatNumber(resultValue)} ${cur} (наценка: +${formatNumber(deltaValue)} ${cur})`;
+      } else if (state.mode === 'reverse') {
+        summaryText = `После вычета ${formatNumber(percent)}% осталось ${formatNumber(amount)} ${cur} → Исходная сумма: ${formatNumber(resultValue)} ${cur} (удержано: ${formatNumber(deltaValue)} ${cur})`;
+      } else {
+        summaryText = `${formatNumber(amount)} ${cur} от ${formatNumber(percent)} ${cur} составляет ${formatNumber(resultValue)}% (разница: ${deltaValue >= 0 ? '+' : ''}${formatNumber(deltaValue)} ${cur})`;
       }
     }
 
     state.lastCalculation = {
-      mode: state.mode,
-      amount,
-      percent,
-      resultValue,
-      deltaValue,
-      currency: cur,
-      isError,
-      errorMessage,
-      formulaText,
-      summaryText,
+      mode: state.mode, amount, percent, resultValue, deltaValue,
+      currency: cur, isError, errorMessage, formulaText, summaryText,
       timestamp: Date.now()
     };
 
@@ -216,6 +272,21 @@
     dom.currencySymbol.textContent = cur;
     dom.unitAmount.textContent = cur;
     dom.unitPercent.textContent = state.mode === 'compare' ? cur : '%';
+    dom.presetsBar.hidden = state.mode === 'compare';
+    dom.fieldAmount.setAttribute('aria-label', state.mode === 'compare' ? 'Первая сумма' : 'Поле ввода суммы');
+    dom.fieldPercent.setAttribute('aria-label', state.mode === 'compare' ? 'Вторая сумма' : 'Поле ввода процента');
+    dom.btnChainResult.disabled = calc.isError || state.mode === 'compare';
+    dom.btnSaveCalc.disabled = calc.isError;
+    dom.btnCopyCalc.disabled = calc.isError;
+    dom.btnShareCalc.disabled = calc.isError;
+    document.querySelectorAll('.step-key').forEach((key) => {
+      key.disabled = state.mode === 'compare';
+    });
+    document.querySelectorAll('.native-haptic-hitbox').forEach((box) => {
+      const button = box.querySelector('button');
+      const overlay = box.querySelector('.native-haptic-overlay');
+      if (button && overlay) overlay.disabled = button.disabled;
+    });
 
     // Подсветка активного поля ввода
     dom.fieldAmount.classList.toggle('active', state.activeField === 'amount');
@@ -335,6 +406,7 @@
     }
 
     if (key === 'step-up' || key === 'step-down') {
+      if (state.mode === 'compare') return;
       const delta = key === 'step-up' ? 1 : -1;
       const currentP = parseRaw(state.percentRaw);
       const nextP = Math.max(0, roundMoney(currentP + delta));
@@ -372,25 +444,13 @@
       return;
     }
 
-    // Ограничение длины ввода (до 11 символов до точки и 2 после)
-    const parts = current.split('.');
-    if (parts.length === 2 && normalizedKey !== '.' && parts[1].length >= 2) {
-      return;
-    }
-    if (parts[0].length >= 11 && normalizedKey !== '.' && parts.length === 1) {
-      return;
-    }
-
-    if (current === '0' && normalizedKey !== '.') {
-      current = normalizedKey;
-    } else {
-      current += normalizedKey;
-    }
-
-    if (/^0{2,}/.test(current)) {
-      current = '0';
-    }
-
+    // Проверяем длину результата, включая клавиши «00» и «000».
+    if (current === '0' && normalizedKey !== '.') current = '';
+    const candidate = current + normalizedKey;
+    const [whole, fraction = ''] = candidate.split('.');
+    if (whole.length > 11 || fraction.length > 2) return;
+    current = candidate;
+    if (/^0{2,}(?!\.)/.test(current)) current = current.replace(/^0+(?=\d)/, '');
     setActiveRaw(current || '0');
     compute();
   }
@@ -409,17 +469,33 @@
     showToast('Итог перенесён в исходную сумму');
   }
 
+  async function copyText(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (_) {}
+    const input = document.createElement('textarea');
+    input.value = text;
+    input.setAttribute('readonly', '');
+    input.style.cssText = 'position:fixed;left:-10000px;top:0;opacity:0;';
+    document.body.appendChild(input);
+    input.focus();
+    input.select();
+    let copied = false;
+    try { copied = document.execCommand('copy'); } catch (_) {}
+    input.remove();
+    return copied;
+  }
+
   async function copyCurrentCalculation() {
     const calc = state.lastCalculation;
     if (!calc || calc.isError) return;
     triggerHaptic();
-
-    try {
-      await navigator.clipboard.writeText(calc.summaryText);
-      showToast('Скопировано в буфер обмена');
-    } catch (_) {
-      showToast(`${formatNumber(calc.resultValue)} ${calc.currency}`);
-    }
+    showToast(await copyText(calc.summaryText)
+      ? 'Расчёт скопирован'
+      : 'Не удалось скопировать');
   }
 
   async function shareCurrentCalculation() {
@@ -473,8 +549,10 @@
         req.onerror = () => reject(req.error);
       });
     } catch (_) {
-      const raw = localStorage.getItem(STORAGE_KEY_HISTORY_FALLBACK);
-      return raw ? JSON.parse(raw) : [];
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_HISTORY_FALLBACK);
+        return raw ? JSON.parse(raw) : [];
+      } catch (_) { return []; }
     }
   }
 
@@ -494,10 +572,15 @@
         tx.onerror = () => reject(tx.error);
       });
     } catch (_) {
-      const list = await getAllSavedCalculations();
-      record.id = Date.now();
-      list.unshift(record);
-      localStorage.setItem(STORAGE_KEY_HISTORY_FALLBACK, JSON.stringify(list.slice(0, 100)));
+      try {
+        const list = await getAllSavedCalculations();
+        record.id = Date.now();
+        list.unshift(record);
+        localStorage.setItem(STORAGE_KEY_HISTORY_FALLBACK, JSON.stringify(list.slice(0, 100)));
+      } catch (_) {
+        showToast('Не удалось сохранить расчёт');
+        return;
+      }
     }
 
     await refreshHistoryUI();
@@ -523,6 +606,7 @@
   }
 
   async function clearAllHistory() {
+    if (!window.confirm('Удалить все сохранённые расчёты?')) return;
     triggerHaptic();
     try {
       const db = await openDatabase();
@@ -572,23 +656,30 @@
       const card = document.createElement('div');
       card.className = 'history-card';
 
-      const timeStr = new Date(item.timestamp).toLocaleTimeString('ru-RU', {
-        hour: '2-digit',
-        minute: '2-digit'
+      const timeStr = new Date(item.timestamp).toLocaleString('ru-RU', {
+        day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
       });
 
       const unit = item.mode === 'compare' ? '%' : item.currency;
 
       const mainMatchingDiv = document.createElement('div');
       mainMatchingDiv.className = 'history-card-main';
-      mainMatchingDiv.innerHTML = `
-        <div class="history-badge-row">
-          <span class="history-mode-tag">${modeNames[item.mode] || 'Расчёт'}</span>
-          <span class="history-time">${timeStr}</span>
-        </div>
-        <div class="history-result-line">${formatNumber(item.resultValue)} ${unit}</div>
-        <div class="history-meta-line">${item.formulaText}</div>
-      `;
+      const badgeRow = document.createElement('div');
+      badgeRow.className = 'history-badge-row';
+      const modeBadge = document.createElement('span');
+      modeBadge.className = 'history-mode-tag';
+      modeBadge.textContent = modeNames[item.mode] || 'Расчёт';
+      const stamp = document.createElement('span');
+      stamp.className = 'history-time';
+      stamp.textContent = timeStr;
+      badgeRow.append(modeBadge, stamp);
+      const resultLine = document.createElement('div');
+      resultLine.className = 'history-result-line';
+      resultLine.textContent = `${formatNumber(item.resultValue)} ${unit}`;
+      const metaLine = document.createElement('div');
+      metaLine.className = 'history-meta-line';
+      metaLine.textContent = item.formulaText;
+      mainMatchingDiv.append(badgeRow, resultLine, metaLine);
 
       // Восстановление расчёта по тапу на карточку
       mainMatchingDiv.addEventListener('click', () => {
@@ -609,14 +700,11 @@
       copyBtn.type = 'button';
       copyBtn.className = 'icon-btn';
       copyBtn.setAttribute('aria-label', 'Скопировать запись');
-      copyBtn.textContent = '📋';
+      copyBtn.textContent = 'Копия';
       copyBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         triggerHaptic();
-        try {
-          await navigator.clipboard.writeText(item.summaryText);
-          showToast('Запись скопирована');
-        } catch (_) {}
+        showToast(await copyText(item.summaryText) ? 'Запись скопирована' : 'Не удалось скопировать');
       });
 
       const delBtn = document.createElement('button');
@@ -727,6 +815,18 @@
       }, { passive: true });
     });
 
+    // Элементы двух интерактивных полей доступны также с физической клавиатуры.
+    [dom.fieldAmount, dom.fieldPercent].forEach((el) => {
+      el.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          state.activeField = el.dataset.field;
+          state.overwriteOnNextInput = true;
+          renderUI();
+        }
+      });
+    });
+
     // Быстрые пресеты процентов
     dom.presetChips.forEach((chip) => {
       chip.addEventListener('click', () => {
@@ -746,11 +846,12 @@
 
     // Поддержка физической клавиатуры (iPad Magic Keyboard / macOS Safari)
     window.addEventListener('keydown', (e) => {
-      if (!dom.historySheet.hidden && e.key === 'Escape') {
-        dom.historySheet.hidden = true;
+      if (!dom.historySheet.hidden) {
+        if (e.key === 'Escape') dom.historySheet.hidden = true;
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) && !e.target.classList.contains('native-haptic-overlay')) return;
 
       if (/^[0-9]$/.test(e.key)) {
         e.preventDefault();
@@ -764,10 +865,7 @@
       } else if (e.key === 'Escape') {
         e.preventDefault();
         handleKeyInput('clear');
-      } else if (e.key === 'Tab') {
-        e.preventDefault();
-        handleKeyInput('switch-field');
-      } else if (e.key === 'Enter') {
+      } else if (e.key === 'Enter' && e.target === document.body) {
         e.preventDefault();
         saveCurrentCalculation();
       }
@@ -804,41 +902,47 @@
      ======================================================================== */
   function initServiceWorker() {
     if (!('serviceWorker' in navigator)) return;
+    let registrationRef = null;
+    let updateRequested = false;
 
-    let waitingWorker = null;
-
-    navigator.serviceWorker.register('./sw.js').then((registration) => {
-      if (registration.waiting) {
-        waitingWorker = registration.waiting;
+    const showWaiting = (registration) => {
+      if (registration.waiting && navigator.serviceWorker.controller) {
         dom.updateBanner.hidden = false;
       }
+    };
 
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing;
-        if (!newWorker) return;
-
-        newWorker.addEventListener('statechange', () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            waitingWorker = newWorker;
-            dom.updateBanner.hidden = false;
-          }
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+      .then(async (registration) => {
+        registrationRef = registration;
+        showWaiting(registration);
+        registration.addEventListener('updatefound', () => {
+          const installing = registration.installing;
+          if (!installing) return;
+          installing.addEventListener('statechange', () => {
+            if (installing.state === 'installed') showWaiting(registration);
+          });
         });
-      });
-    }).catch(() => {});
+        try { await registration.update(); } catch (_) {}
+      }).catch(() => {});
 
     dom.btnApplyUpdate.addEventListener('click', () => {
-      if (waitingWorker) {
-        waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-      }
+      const worker = registrationRef && registrationRef.waiting;
+      if (!worker) return;
+      updateRequested = true;
+      worker.postMessage({ type: 'SKIP_WAITING' });
       dom.updateBanner.hidden = true;
     });
 
-    let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing) return;
-      refreshing = true;
-      window.location.reload();
+      if (updateRequested) window.location.reload();
     });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && registrationRef) registrationRef.update().catch(() => {});
+    });
+    window.setInterval(() => {
+      if (registrationRef && !document.hidden) registrationRef.update().catch(() => {});
+    }, 60 * 60 * 1000);
   }
 
   /* ========================================================================
@@ -849,6 +953,7 @@
     attachEvents();
     compute();
     refreshHistoryUI();
+    enableNativeTouchFeedback();
     initServiceWorker();
   }
 
