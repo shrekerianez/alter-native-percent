@@ -1,0 +1,35 @@
+{
+  "id": "/alter-native-percent/",
+  "name": "AlterNative — Калькулятор процентов",
+  "short_name": "Проценты",
+  "description": "Быстрый калькулятор процентов, комиссии и обратного расчёта.",
+  "lang": "ru",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone"],
+  "background_color": "#f2f2f7",
+  "theme_color": "#f2f2f7",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    {
+      "src": "./apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

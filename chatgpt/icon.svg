@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">AlterNative Проценты</title>
+  <desc id="desc">Тёмная иконка со знаком процента.</desc>
+  <rect width="512" height="512" fill="#121214"/>
+  <circle cx="179" cy="179" r="54" fill="#f5f5f7"/>
+  <circle cx="333" cy="333" r="54" fill="#f5f5f7"/>
+  <path d="M170 362 342 150" stroke="#f5f5f7" stroke-width="44" stroke-linecap="round"/>
+</svg>

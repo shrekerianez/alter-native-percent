@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <!-- Настройки iOS 27 WebKit Standalone -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Проценты">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
+  <meta name="format-detection" content="telephone=no">
+
+  <title>AlterNative — Калькулятор процентов</title>
+  
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <!-- Скрытый нативный переключатель Safari для генерации Taptic Engine отклика -->
+  <div class="haptic- feedback- trigger" aria-hidden="true">
+    <input type="checkbox" id="webkit-haptic-switch" switch tabindex="-1">
+    <label for="webkit-haptic-switch" id="webkit-haptic-label"></label>
+  </div>
+
+  <!-- Баннер доступного обновления приложения -->
+  <div id="update-banner" class="update-banner" hidden role="status" aria-live="polite">
+    <span>Доступна новая версия приложения</span>
+    <button type="button" id="btn-apply-update" class="btn-update-action">Обновить</button>
+  </div>
+
+  <!-- Основной контейнер приложения -->
+  <main class="app-shell">
+    
+    <!-- Верхняя панель навигации -->
+    <header class="top-bar">
+      <div class="brand-group">
+        <span class="brand-badge">AlterNative</span>
+        <h1 class="app-title">Проценты</h1>
+      </div>
+      
+      <div class="top-actions">
+        <button type="button" id="btn-currency" class="glass-pill-btn" aria-label="Сменить валюту">
+          <span id="currency-symbol">₽</span>
+        </button>
+        <button type="button" id="btn-open-history" class="glass-pill-btn history-trigger" aria-label="Открыть сохранённые расчёты">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 8v4l3 3"></path>
+            <circle cx="12" cy="12" r="9"></circle>
+          </svg>
+          <span>Журнал</span>
+          <span id="history-count" class="badge-counter" hidden>0</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Сегментированный переключатель режимов (Liquid Glass Segmented Control) -->
+    <nav class="mode-selector" role="tablist" aria-label="Режим расчёта">
+      <div class="segment-indicator" id="segment-indicator"></div>
+      <button type="button" role="tab" aria-selected="true" data-mode="subtract" class="mode-tab active">
+        <span class="mode-icon">−%</span>
+        <span class="mode-name">Вычет</span>
+      </button>
+      <button type="button" role="tab" aria-selected="false" data-mode="add" class="mode-tab">
+        <span class="mode-icon">+%</span>
+        <span class="mode-name">Наценка</span>
+      </button>
+      <button type="button" role="tab" aria-selected="false" data-mode="reverse" class="mode-tab">
+        <span class="mode-icon">↺</span>
+        <span class="mode-name">До вычета</span>
+      </button>
+      <button type="button" role="tab" aria-selected="false" data-mode=" compare" class="mode-tab">
+        <span class="mode-icon">Δ%</span>
+        <span class="mode-name">Доля</span>
+      </button>
+    </nav>
+
+    <!-- Рабочая область: Карточка живого расчёта -->
+    <section class="workspace" aria-live="polite">
+      <div class="glass-card calculation-card">
+        
+        <!-- Секция вводимых параметров -->
+        <div class="inputs-grid">
+          <!-- Поле 1: Основная сумма -->
+          <div class="input-field-box active" id=" field-amount" data-field="amount" role="button" tabindex="0" aria-label="Поле ввода суммы">
+            <div class="field-header">
+              <span class="field-label" id="label-amount">Исходная сумма</span>
+              <span class="field-hint">Свайп ← стереть</span>
+            </div>
+            <div class="field-value-wrap">
+              <span class=" field-value" id="display-amount">100 000</span>
+              <span class="field-unit" id="unit-amount">₽</span>
+            </div>
+          </div>
+
+          <!-- Поле 2: Процент (или Вторая сумма в режиме Доли) -->
+          <div class="input-field-box" id="field-percent" data-field="percent" role="button" tabindex="0" aria-label="Поле ввода процента">
+            <div class="field-header">
+              <span class="field-label" id="label-percent">Вычитаемый процент</span>
+            </div>
+            <div class="field-value-wrap">
+              <span class="field-value" id="display-percent">15</span>
+              <span class="field-unit" id="unit-percent">%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Лента быстрых пресетов процентов -->
+        <div class="presets-bar" id="presets-bar" aria-label="Быстрый выбор процента">
+          <button type="button" class="preset-chip" data-percent="6">6% <small>СЗ</small></button>
+          <button type="button" class="preset-chip" data-percent="10">10%</button>
+          <button type="button" class="preset-chip" data-percent="13">13% <small>НДФЛ</small></button>
+          <button type="button" class="preset-chip active" data-percent="15">15%</button>
+          <button type="button" class="preset-chip" data-percent="20">20% <small>НДС</small></button>
+          <button type="button" class="preset-chip" data-percent="25">25%</button>
+          <button type="button" class="preset-chip" data-percent="50">50%</button>
+        </div>
+
+        <hr class="glass-divider">
+
+        <!-- Секция главного результата -->
+        <div class="result-section">
+          <div class="result-header">
+            <span class="result-label" id="label-result">Сумма после вычета</span>
+            <button type="button" id="btn-chain-result" class="chain-btn" title="Перенести результат в исходную сумму для следующего расчёта">
+              <span>В базу</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17l9.2-9.2M17 17V7H7"/></svg>
+            </button>
+          </div>
+
+          <div class="result-main- readout" id="result-readout-container">
+            <output id="display-result" class="result-number">85 000 ₽</output>
+          </div>
+
+          <!-- Анатомия расчёта (формула и дельта) -->
+          <div class="breakdown-row" id="breakdown-row">
+            <div class="breakdown-item">
+              <span class="breakdown-key" id="breakdown-key-1">Величина скидки / налога:</span>
+              <span class="breakdown-val" id="breakdown-val-1">−15 000 ₽</span>
+            </div>
+            <div class="breakdown-item" id="breakdown-item-2">
+              <span class="breakdown-key" id="breakdown-key-2">Формула:</span>
+              <span class="breakdown-val" id="breakdown-val-2">100 000 × (1 − 0,15)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Панель быстрых действий с результатом -->
+        <div class="card-actions">
+          <button type="button" id="btn-save-calc" class="action-btn primary-action">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+            <span>Сохранить</span>
+          </button>
+          <button type="button" id="btn-copy-calc" class="action-btn">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Скопировать</span>
+          </button>
+          <button type="button" id="btn-share-calc" class="action-btn" aria-label="Поделиться расчётом">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            <span>Поделиться</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Тактильная клавиатура AlterNative Numpad (адаптирована под управление одной рукой) -->
+    <section class="numpad-section" aria-label="Цифровая клавиатура">
+      <div class="numpad-grid">
+        <button type="button" class="num-key util-key" data-key="clear">AC</button>
+        <button type="button" class="num-key util-key" data-key="switch-field" aria-label="Переключить поле ввода">
+          <span>Поле ⇄</span>
+        </button>
+        <button type="button" class="num-key util-key" data-key="000">000</button>
+        <button type="button" class="num-key.backspace-key util-key" data-key="backspace" aria-label="Удалить символ">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
+        </button>
+
+        <button type="button" class="num-key" data-key="7">7</button>
+        <button type="button" class="num-key" data-key="8">8</button>
+        <button type="button" class="num-key" data-key="9">9</button>
+        <button type="button" class="num-key step-key" data-key="step-up">+1%</button>
+
+        <button type="button" class="num-key" data-key="4">4</button>
+        <button type="button" class="num-key" data-key="5">5</button>
+        <button type="button" class="num-key" data-key="6">6</button>
+        <button type="button" class="num-key step-key" data-key="step-down">−1%</button>
+
+        <button type="button" class="num-key" data-key="1">1</button>
+        <button type="button" class="num-key" data-key="2">2</button>
+        <button type="button" class="num-key" data-key="3">3</button>
+        <button type="button" class="num-key" data-key="00">00</button>
+
+        <button type="button" class="num-key zero-key" data-key="0">0</button>
+        <button type="button" class="num-key" data-key=",">,</button>
+        <button type="button" class="num-key accent-key" data-key="quick-save" aria-label="Быстрое сохранение в журнал">★</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Модальная шторка «Журнал сохранённых расчётов» -->
+  <aside id="history-sheet" class="sheet- backdrop" hidden aria-modal="true" role="dialog" aria-labelledby="sheet-title">
+    <div class="glass-sheet">
+      <div class="sheet-handle-bar" id="sheet-drag-handle">
+        <span class="sheet-grabber"></span>
+      </div>
+      
+      <header class="sheet-header">
+        <div>
+          <h2 id="sheet-title" class="sheet-title">Журнал расчётов</h2>
+          <p class="sheet-subtitle">Нажмите на запись, чтобы вернуть её в расчёт</p>
+        </div>
+        <div class="sheet-header-actions">
+          <button type="button" id="btn-clear-history" class="text-danger-btn" hidden>Очистить</button>
+          <button type="button" id="btn-close-history" class="close-circle-btn" aria-label="Закрыть журнал">✕</button>
+        </div>
+      </header>
+
+      <div id="history-list" class="history-list">
+        <!-- Записи рендерятся динамически -->
+      </div>
+    </div>
+  </aside>
+
+  <!-- Всплывающее уведомление (Liquid Glass Toast) -->
+  <div id="toast-container" class="toast-container" role="status" aria-live="polite"></div>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "AlterNative: Калькулятор процентов",
+  "short_name": "Проценты",
+  "description": "Быстрый нативный калькулятор процентов, скидок, налогов и обратных расчётов в стиле iOS 27.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "lang": "ru",
+  "categories": ["finance", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
