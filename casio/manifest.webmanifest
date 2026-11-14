@@ -1,0 +1,28 @@
+{
+  "id": "/alter-native-percent/casio/",
+  "name": "AlterNative Casio — Калькулятор процентов",
+  "short_name": "Casio",
+  "description": "Классический калькулятор процентов для iPhone Duo, с историей и памятью.",
+  "lang": "ru",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#e7e5e0",
+  "theme_color": "#e7e5e0",
+  "icons": [
+    {
+      "src": "../apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "../icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
