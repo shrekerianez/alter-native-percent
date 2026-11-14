@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#e8e3d9" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#252724" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="AlterNative Casio — классический калькулятор процентов для раскрытого iPhone Duo.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AlterNative Casio">
+  <meta name="format-detection" content="telephone=no">
+  <title>AlterNative Casio — Проценты</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand"><span class="brand-icon" aria-hidden="true"><i></i><i></i></span><div><strong>AlterNative</strong><small>CASIO STYLE · PWA</small></div></div>
+    <div class="topbar-right">
+      <span class="topbar-title">Калькулятор процентов</span>
+      <button class="history-toggle glass-button" id="historyToggle" type="button" aria-label="Открыть историю">История <span aria-hidden="true">☷</span></button>
+      <a class="home-link glass-button" href="../" aria-label="Все калькуляторы">⌂</a>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar" aria-label="Дополнительные инструменты">
+      <section class="side-panel history-panel" aria-labelledby="historyHeading">
+        <div class="panel-heading"><h2 id="historyHeading"><span aria-hidden="true">◷</span> История</h2><button type="button" class="small-action" id="historyClear">Очистить</button></div>
+        <div class="history-list" id="historyList"><p class="empty-state">Здесь появятся результаты вычислений.</p></div>
+      </section>
+      <section class="side-panel presets-panel" aria-labelledby="presetsHeading">
+        <div class="panel-heading"><h2 id="presetsHeading"><span aria-hidden="true">%</span> Быстрые проценты</h2><button type="button" class="small-action icon-action" id="presetAdd" aria-label="Добавить процент">＋</button></div>
+        <div class="preset-list" id="presetList"></div>
+        <p class="panel-help">Нажми процент, чтобы вставить его в калькулятор.</p>
+      </section>
+      <section class="side-panel values-panel" aria-labelledby="valuesHeading">
+        <div class="panel-heading"><h2 id="valuesHeading"><span aria-hidden="true">▤</span> Сохранённые числа</h2><button type="button" class="small-action icon-action" id="valueSave" aria-label="Сохранить число">＋</button></div>
+        <div id="valuesList" class="values-list"></div>
+      </section>
+      <section class="side-panel reverse-panel" aria-labelledby="reverseHeading">
+        <div class="panel-heading"><h2 id="reverseHeading">До вычета процента</h2></div>
+        <div class="reverse-fields">
+          <label>Сумма после удержания<input inputmode="decimal" id="reverseAmount" type="text" placeholder="8 500" autocomplete="off"></label>
+          <label>Удержали, %<input inputmode="decimal" id="reverseRate" type="text" placeholder="15" autocomplete="off"></label>
+        </div>
+        <div class="reverse-result"><span>Исходная сумма</span><strong id="reverseOutput">—</strong></div>
+        <button class="reverse-apply" id="reverseApply" type="button" disabled>Перенести в калькулятор</button>
+      </section>
+    </aside>
+
+    <section class="calculator" aria-label="Классический калькулятор">
+      <div class="machine">
+        <div class="machine-top"><span class="machine-brand">AlterNative <small>classic</small></span><div class="solar-strip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+        <div class="lcd-bezel">
+          <div class="lcd">
+            <div class="lcd-meta"><span class="memory-indicator" id="memoryIndicator" aria-label="Есть значение в памяти">M</span><span id="lcdOperation" class="operation-label">Готов к вычислениям</span></div>
+            <output class="lcd-number" id="display" aria-live="polite" aria-atomic="true">0</output>
+          </div>
+        </div>
+        <div class="memory-keys" aria-label="Память">
+          <button class="key key-memory" data-action="mc" type="button">MC</button>
+          <button class="key key-memory" data-action="mr" type="button">MR</button>
+          <button class="key key-memory" data-action="mminus" type="button">M−</button>
+          <button class="key key-memory" data-action="mplus" type="button">M+</button>
+        </div>
+        <div class="keypad" aria-label="Клавиатура калькулятора">
+          <button class="key key-clear" data-action="ac" type="button">AC</button>
+          <button class="key key-function" data-action="ce" type="button">CE</button>
+          <button class="key key-function" data-action="percent" type="button">%</button>
+          <button class="key key-operator" data-action="operator" data-value="/" type="button">÷</button>
+          <button class="key key-number" data-action="digit" data-value="7" type="button">7</button>
+          <button class="key key-number" data-action="digit" data-value="8" type="button">8</button>
+          <button class="key key-number" data-action="digit" data-value="9" type="button">9</button>
+          <button class="key key-operator" data-action="operator" data-value="*" type="button">×</button>
+          <button class="key key-number" data-action="digit" data-value="4" type="button">4</button>
+          <button class="key key-number" data-action="digit" data-value="5" type="button">5</button>
+          <button class="key key-number" data-action="digit" data-value="6" type="button">6</button>
+          <button class="key key-operator" data-action="operator" data-value="-" type="button">−</button>
+          <button class="key key-number" data-action="digit" data-value="1" type="button">1</button>
+          <button class="key key-number" data-action="digit" data-value="2" type="button">2</button>
+          <button class="key key-number" data-action="digit" data-value="3" type="button">3</button>
+          <button class="key key-operator" data-action="operator" data-value="+" type="button">+</button>
+          <button class="key key-function" data-action="sign" type="button">±</button>
+          <button class="key key-number" data-action="digit" data-value="0" type="button">0</button>
+          <button class="key key-number" data-action="decimal" type="button">,</button>
+          <button class="key key-equals" data-action="equals" type="button">=</button>
+        </div>
+        <div class="machine-foot"><span>12 DIGITS · MEMORY</span><button id="copyResult" class="copy-result" type="button">Скопировать результат ⧉</button></div>
+      </div>
+    </section>
+  </main>
+</div>
+<dialog id="historyDialog" class="app-dialog">
+  <div class="dialog-heading"><h2>История вычислений</h2><button class="close-dialog" type="button" data-close-dialog aria-label="Закрыть">✕</button></div>
+  <div id="historyListMobile" class="history-list"></div>
+  <button class="dialog-secondary" type="button" id="historyClearMobile">Очистить историю</button>
+</dialog>
+<dialog id="presetDialog" class="app-dialog">
+  <form id="presetForm">
+    <div class="dialog-heading"><h2>Сохранить процент</h2><button class="close-dialog" type="button" data-close-dialog aria-label="Закрыть">✕</button></div>
+    <label class="dialog-label">Название<input id="presetName" maxlength="32" required placeholder="Например, НДС"></label>
+    <label class="dialog-label">Процент<input id="presetRate" required inputmode="decimal" type="text" placeholder="20"></label>
+    <button class="dialog-primary" type="submit">Сохранить</button>
+  </form>
+</dialog>
+<div role="status" aria-live="polite" id="toast" class="toast"></div>
+</body>
+</html>
