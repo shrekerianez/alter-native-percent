@@ -96,9 +96,9 @@ button:disabled{opacity:.42;cursor:default}
 .app-dialog .history-list{max-height:55dvh}
 .toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);left:50%;transform:translate(-50%,10px);z-index:5;background:#2e4033;color:white;border-radius:100px;padding:10px 19px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap}
 .toast.visible{opacity:1;transform:translate(-50%,0)}
-@media(min-width:720px){.machine{min-height:0}}
+@media(min-width:600px){.machine{min-height:0}}
 @media(min-width:980px){.workspace{grid-template-columns:305px minmax(0,1fr);gap:20px}.machine{padding:25px}.keypad .key{min-height:clamp(61px,9.2dvh,89px)}}
-@media(max-width:719px){
+@media(max-width:599px){
   .app-shell{padding:calc(env(safe-area-inset-top,0px) + 8px) max(11px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(11px,env(safe-area-inset-left,0px))}
   .topbar{height:52px;padding-bottom:9px}
   .brand strong{font-size:16px}.brand small{font-size:8px}
@@ -144,4 +144,19 @@ button:disabled{opacity:.42;cursor:default}
   .dialog-label input{background:#222a24;color:#fff;border-color:#647265}
   .close-dialog{background:#526053;color:#fff}
   .dialog-secondary{background:#4c4843;color:#f4dbda}
+}
+
+/* Opened foldable layouts: show the history panel from 600 CSS px. */
+@media(min-width:600px) and (max-width:800px){
+ .workspace{grid-template-columns:minmax(184px,31%) minmax(0,1fr);gap:10px}
+ .side-panel{padding:10px;border-radius:15px}
+ .topbar-title{display:none}
+ .machine{padding:11px}
+ .keypad,.memory-keys{gap:7px}
+ .machine-brand{font-size:17px}
+ .solar-strip{width:82px}
+ .lcd-number{font-size:clamp(36px,6.5vw,54px)}
+ .keypad .key{font-size:clamp(24px,3.3vw,32px)}
+ .key-memory{font-size:16px}
+ .reverse-fields{grid-template-columns:1fr}
 }
